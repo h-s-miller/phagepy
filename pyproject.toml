@@ -1,0 +1,12 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "phagepy"
+authors = [{name = "Haleigh Miller", email = "haleigh.miller@ucsf.edu"}]
+readme = "README.md"
+dynamic = ["version", "description"]
+
+[project.urls]
+Home = "https://github.com/h-s-miller"
