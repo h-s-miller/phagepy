@@ -9,7 +9,7 @@ def compute_expected_rpk(ad, ctrl_ids) -> np.array:
     For each peptide, p_i, the expected rpk value is defined as,
     p_i =  ( avg(rpk(J,i)) where J is the control group ids if the rpk is non-zero in at least one of the control samples
            {
-           ( median(rpk(J,L)) where J is the control group ids and L is the set of all peptides that belong to the same gene as peptide i 
+           ( median(rpk(J,L)) where J is the control group ids and L is the set of all peptides that belong to the same gene as peptide  
 
     """
 
