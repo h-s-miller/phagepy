@@ -7,6 +7,3 @@ name = "phagepy"
 authors = [{name = "Haleigh Miller", email = "haleigh.miller@ucsf.edu"}]
 readme = "README.md"
 dynamic = ["version", "description"]
-
-[project.urls]
-Home = "https://github.com/h-s-miller"

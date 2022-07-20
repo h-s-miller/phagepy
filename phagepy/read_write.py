@@ -3,7 +3,7 @@ import numpy as np
 import scanpy as sc
 import anndata as ad
 
-def create_anndata(counts_file, metadata_file, transpose=True) -> AnnData:
+def create_anndata(counts_file, metadata_file, transpose=True):
     #read in counts
     counts_df=pd.read_csv(counts_file, index_col=0, header=0) # should have index names and column names
 
@@ -13,11 +13,11 @@ def create_anndata(counts_file, metadata_file, transpose=True) -> AnnData:
     #if the data is in var x obs format instead of obs x var (this is default for download from PhageDB), need to transpose
     if transpose:
         counts_df=counts_df.T
-        
-    # create observation matrix (obs), will later combine with meta and filter. create variables matrix (var) of all peptides
-    obs=pd.DataFrame(data=None, index=counts_df.columns)
-    var=pd.DataFrame(data=None, index=counts_df.index)
 
+    # create observation matrix (obs), will later combine with meta and filter. create variables matrix (var) of all peptides
+    obs=pd.DataFrame(data=None, index=counts_df.index)
+    var=pd.DataFrame(data=None, index=counts_df.columns)
+    
     #create anndata
     adata=sc.AnnData(X=counts_df, obs=obs, var=var)
 

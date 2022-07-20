@@ -3,7 +3,7 @@ PhagePY: tool for analysis of phip-seq data
 
 """
 
-from .preproccesing import *
+from .preprocessing import *
 from .read_write import create_anndata
 
 
