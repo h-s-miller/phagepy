@@ -1,4 +1,4 @@
-# PhagePy
-! [BuildStatus] (https://github.com/ < your-github-username > /Project3/workflows/Project3/badge.svg?event=push)
+h# PhagePy
+! [BuildStatus] (https://github.com/h-s-miller/phagepy/workflows/phagepy/badge.svg?event=push)
 
 PhagePy is a library that streamlines the processing of Phage Immunoprecipitation Sequencing (PhIP-Seq) data.
