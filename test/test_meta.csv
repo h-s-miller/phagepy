@@ -1,4 +1,9 @@
-Sequencing_ID,Group,Round,Barcode,Placeholder,PregGroup,Embryonic_day,Cross,Adjuvant,OT2,cOVA,Genotype
-B6_10B_R3_Demux2_S273_R1_001,Pregnancy,3,B6_10,B,B6_mOVA_OT2,6.5,B6_mOVA,No,Yes,No,B6
-B6_10C_R3_Demux2_S282_R1_001,Pregnancy,3,B6_10,C,B6_mOVA_OT2,18.5,B6_mOVA,No,Yes,No,B6
-AG9_R3_Demux2_S248_R1_001,MockIP,3,AG9,NA,NA,NA,NA,NA,NA,NA,AG
+﻿seq_id,group,round,id
+seq1,Disease,2,patient1
+seq2,Disease,3,patient1
+seq3,Disease,2,patient2
+seq4,Disease,3,patient2
+seq5,MockIP,3,AG1
+seq6,MockIP,3,AG2
+seq7,MockIP,3,AG3
+seq8,MockIP,3,AG4
