@@ -34,7 +34,9 @@ def test_read_data():
 def test_compute_expected_rpk():
     ad=data_for_testing()
     ctrl_ids=['AG9_R3_Demux2_S248_R1_001','B6_10C_R3_Demux2_S282_R1_001']
-    print('here')
+
+    # pseudocount
+    ad.X=ad.X+1
     # need to define control first
     ad.uns['control_ids']=ctrl_ids # normally define_ctrl_set() fxn would do this, but i picked arbitrary obs to be ctrl for test
     ad=pp.filter_out_ctrl_set(ad)

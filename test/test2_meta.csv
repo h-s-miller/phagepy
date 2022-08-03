@@ -1,0 +1,9 @@
+﻿seq_id,group,round,id
+seq1,Disease,2,patient1
+seq2,Disease,3,patient1
+seq3,Disease,2,patient2
+seq4,Disease,3,patient2
+seq5,MockIP,3,AG1
+seq6,MockIP,3,AG2
+seq7,MockIP,3,AG3
+seq8,MockIP,3,AG4
