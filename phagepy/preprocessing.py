@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-def compute_expected_rpk(ad, metric='median', X_ctrl_key='X_control') -> np.array:
+def compute_expected_rpk(ad, metric, X_ctrl_key='X_control') -> np.array:
     """
     Computes expected rpk value for each peptide wrt the user-defined control group. 
     
@@ -32,14 +32,14 @@ def compute_expected_rpk(ad, metric='median', X_ctrl_key='X_control') -> np.arra
     return exp_rpk
             
 
-def peptide_fold_change(ad, X_ctrl_key='X_control') -> np.array:
+def peptide_fold_change(ad, X_ctrl_key='X_control', metric='median') -> np.array:
     """
     Returns fold-change enrichment over user-defined control group 
     by calculating expected rpk for each peptide in the control group. 
 
     eg, calculating the fold change of each peptide over AG bead controls 
     """
-    exp_rpk=compute_expected_rpk(ad,X_ctrl_key)
+    exp_rpk=compute_expected_rpk(ad, metric, X_ctrl_key)
 
     return ad.X/ exp_rpk[None,:]
 
