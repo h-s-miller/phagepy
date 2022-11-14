@@ -2,12 +2,12 @@
 import numpy as np
 import pandas as pd
 
-def compute_expected_rpk(ad, X_ctrl_key='X_control') -> np.array:
+def compute_expected_rpk(ad, metric='median', X_ctrl_key='X_control') -> np.array:
     """
     Computes expected rpk value for each peptide wrt the user-defined control group. 
     
     For each peptide, p_i, the expected rpk value is defined as,
-    p_i =  ( avg(rpk(J,i)) where J is the control group ids if the rpk is non-zero in at least one of the control samples
+    p_i =  ( median(rpk(J,i)) where J is the control group ids if the rpk is non-zero in at least one of the control samples
            {
            ( median(rpk(J,L)) where J is the control group ids and L is the set of all peptides that belong to the same gene as peptide i 
 
@@ -22,9 +22,13 @@ def compute_expected_rpk(ad, X_ctrl_key='X_control') -> np.array:
         raise ValueError('Check count data, there should not be negative rpk values.')
               
     
-    #then can compute mean
-    exp_rpk=np.mean(X, axis=0)
-
+    #then can compute mean or median (default=median)
+    if metric=='mean':
+        exp_rpk=np.mean(X, axis=0)
+    elif metric=='median':
+        exp_rpk=np.median(X, axis=0)
+    else: 
+        raise ValueError("Metric value not valid. Please use metric='median' or metric='mean'")
     return exp_rpk
             
 
