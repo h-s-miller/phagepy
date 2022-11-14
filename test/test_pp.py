@@ -41,9 +41,13 @@ def test_fold_change():
     ad=pp.define_ctrl_set(ad, obs_key='group', obs_value='MockIP')
     ad=pp.filter_out_ctrl_set(ad)
 
-    fc=pp.peptide_fold_change(ad)
+    ##mean and median should give the same result, ie for each peptide median=mean in the MockIP
+    fc=pp.peptide_fold_change(ad, metric='mean')
     assert(np.array_equal(fc.sum(axis=0),[2., 2., 8., 2., 8., 1.]))
 
+    fc=pp.peptide_fold_change(ad, metric='median')
+    assert(np.array_equal(fc.sum(axis=0),[2., 2., 8., 2., 8., 1.]))
+    
 def test_scaling_factor():
     ad=data_for_testing()
     ad=pp.define_ctrl_set(ad, obs_key='group', obs_value='MockIP')
