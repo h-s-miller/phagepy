@@ -2,12 +2,12 @@
 import numpy as np
 import pandas as pd
 
-def compute_expected_rpk(ad, X_ctrl_key='X_control') -> np.array:
+def compute_expected_rpk(ad, metric, X_ctrl_key='X_control') -> np.array:
     """
     Computes expected rpk value for each peptide wrt the user-defined control group. 
     
     For each peptide, p_i, the expected rpk value is defined as,
-    p_i =  ( avg(rpk(J,i)) where J is the control group ids if the rpk is non-zero in at least one of the control samples
+    p_i =  ( median(rpk(J,i)) where J is the control group ids if the rpk is non-zero in at least one of the control samples
            {
            ( median(rpk(J,L)) where J is the control group ids and L is the set of all peptides that belong to the same gene as peptide i 
 
@@ -22,20 +22,24 @@ def compute_expected_rpk(ad, X_ctrl_key='X_control') -> np.array:
         raise ValueError('Check count data, there should not be negative rpk values.')
               
     
-    #then can compute mean
-    exp_rpk=np.mean(X, axis=0)
-
+    #then can compute mean or median (default=median)
+    if metric=='mean':
+        exp_rpk=np.mean(X, axis=0)
+    elif metric=='median':
+        exp_rpk=np.median(X, axis=0)
+    else: 
+        raise ValueError("Metric value not valid. Please use metric='median' or metric='mean'")
     return exp_rpk
             
 
-def peptide_fold_change(ad, X_ctrl_key='X_control') -> np.array:
+def peptide_fold_change(ad, X_ctrl_key='X_control', metric='median') -> np.array:
     """
     Returns fold-change enrichment over user-defined control group 
     by calculating expected rpk for each peptide in the control group. 
 
     eg, calculating the fold change of each peptide over AG bead controls 
     """
-    exp_rpk=compute_expected_rpk(ad,X_ctrl_key)
+    exp_rpk=compute_expected_rpk(ad, metric, X_ctrl_key)
 
     return ad.X/ exp_rpk[None,:]
 
@@ -77,7 +81,7 @@ def compute_internal_ctrl_set(ad, n, X_ctrl_key='X_control') -> np.array:
 
     return locs
     
-def define_ctrl_set(ad, obs_key, obs_value, key_ids='control_ids'):
+def define_ctrl_set_locs(ad, obs_key, obs_value, key_ids='control_ids'):
     """
     Defines the control set based on obs_key and obs_value and saves key ids to adata in uns. 
     
@@ -106,7 +110,7 @@ def define_ctrl_set(ad, obs_key, obs_value, key_ids='control_ids'):
     ad.uns[key_ids]=control_locs
     return ad
 
-def filter_out_ctrl_set(ad, key_ids='control_ids', key_X='X_control'):
+def define_ctrl_set(ad, key_ids='control_ids', key_X='X_control', filter_out=True):
     """
     Removes control set after it is defined in define_ctrl_set()
     
@@ -119,6 +123,7 @@ def filter_out_ctrl_set(ad, key_ids='control_ids', key_X='X_control'):
         raise ValueError('Need to define control set first')
 
     ad.varm[key_X]=ad[ad.uns[key_ids],:].X.T
-
-    ad=ad[~ad.obs.index.isin(ad.uns[key_ids])]
+    
+    if filter_out:
+        ad=ad[~ad.obs.index.isin(ad.uns[key_ids])]
     return ad

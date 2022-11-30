@@ -81,7 +81,7 @@ def compute_internal_ctrl_set(ad, n, X_ctrl_key='X_control') -> np.array:
 
     return locs
     
-def define_ctrl_set(ad, obs_key, obs_value, key_ids='control_ids'):
+def define_ctrl_set_locs(ad, obs_key, obs_value, key_ids='control_ids'):
     """
     Defines the control set based on obs_key and obs_value and saves key ids to adata in uns. 
     
@@ -110,7 +110,7 @@ def define_ctrl_set(ad, obs_key, obs_value, key_ids='control_ids'):
     ad.uns[key_ids]=control_locs
     return ad
 
-def filter_out_ctrl_set(ad, key_ids='control_ids', key_X='X_control'):
+def define_ctrl_set(ad, key_ids='control_ids', key_X='X_control', filter_out=True):
     """
     Removes control set after it is defined in define_ctrl_set()
     
@@ -123,6 +123,7 @@ def filter_out_ctrl_set(ad, key_ids='control_ids', key_X='X_control'):
         raise ValueError('Need to define control set first')
 
     ad.varm[key_X]=ad[ad.uns[key_ids],:].X.T
-
-    ad=ad[~ad.obs.index.isin(ad.uns[key_ids])]
+    
+    if filter_out:
+        ad=ad[~ad.obs.index.isin(ad.uns[key_ids])]
     return ad
