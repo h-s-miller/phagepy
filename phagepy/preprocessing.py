@@ -112,7 +112,7 @@ def define_ctrl_set_locs(ad, obs_key, obs_value, key_ids='control_ids'):
 
 def define_ctrl_set(ad, key_ids='control_ids', key_X='X_control', filter_out=True):
     """
-    Removes control set after it is defined in define_ctrl_set()
+    Moves control set after it is defined in define_ctrl_set(), filters it out if filter_out=True (default)
     
     Control set data is removed from main adata object, but stored in adat.varm
     """
