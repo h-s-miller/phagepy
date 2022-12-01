@@ -31,15 +31,15 @@ def test_read_data():
 
 def test_filter_out_ctrl():
     ad=data_for_testing()
-    ad=pp.define_ctrl_set(ad, obs_key='group', obs_value='MockIP')
-    ad=pp.filter_out_ctrl_set(ad)
+    ad=pp.define_ctrl_set_locs(ad, obs_key='group', obs_value='MockIP')
+    ad=pp.define_ctrl_set(ad)
     assert(ad.shape[0]==4 and ad.shape[1]==6, "Not filtering out controls properly, shape is wrong")
 
 
 def test_fold_change():
     ad=data_for_testing()
-    ad=pp.define_ctrl_set(ad, obs_key='group', obs_value='MockIP')
-    ad=pp.filter_out_ctrl_set(ad)
+    ad=pp.define_ctrl_set_locs(ad, obs_key='group', obs_value='MockIP')
+    ad=pp.define_ctrl_set(ad)
 
     ##mean and median should give the same result, ie for each peptide median=mean in the MockIP
     fc=pp.peptide_fold_change(ad, metric='mean')
@@ -50,8 +50,8 @@ def test_fold_change():
     
 def test_scaling_factor():
     ad=data_for_testing()
-    ad=pp.define_ctrl_set(ad, obs_key='group', obs_value='MockIP')
-    ad=pp.filter_out_ctrl_set(ad)
+    ad=pp.define_ctrl_set_locs(ad, obs_key='group', obs_value='MockIP')
+    ad=pp.define_ctrl_set(ad)
     
     scaling=pp.compute_scaling_factor(ad, n=2)
     assert(np.array_equal(scaling,[3., 3., 3., 3.]))
