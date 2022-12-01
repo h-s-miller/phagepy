@@ -19,7 +19,7 @@ def create_anndata(counts_file, metadata_file, transpose=True):
     var=pd.DataFrame(data=None, index=counts_df.columns)
     
     #create anndata
-    adata=sc.AnnData(X=counts_df, obs=obs, var=var)
+    adata=sc.AnnData(X=counts_df, obs=obs, var=var, dtype=np.float32)
 
     # filter on observations that are present in the metdata
     adata=adata[adata.obs.index.isin(meta_df.index)]
