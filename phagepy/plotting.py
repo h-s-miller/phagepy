@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.decomposition import PCA
-
+import matplotlib as mpl
 
 def PCA_samples_2D(adata, layer_='FC_over_AG', raw=False):
     """
