@@ -82,7 +82,7 @@ def plot_PCA_samples_2D(adata, layer_='FC_over_AG', raw=False, obs_key=None, pri
             colors=obs_colors
             
         for target, color in zip(targets,colors):
-            indicesToKeep = adata.obs.index[adata.obs.sample_type == target]
+            indicesToKeep = adata.obs.index[adata.obs[obs_key] == target]
             ax.scatter(principalDf.loc[indicesToKeep, 'principal component 1'],
                        principalDf.loc[indicesToKeep, 'principal component 2'],
                        c = color,
