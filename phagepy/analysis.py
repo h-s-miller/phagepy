@@ -36,7 +36,7 @@ def generate_SS_hits(ad, layer, ctrl_key, ctrl_value, z_cutoff=2):
     sd=np.std(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
 
     #take and save z-score
-    ad.layers['Z_{}'.format(ctrl_value)]=ad.layers[layer]-mu/sd]
+    ad.layers['Z_{}'.format(ctrl_value)]=ad.layers[layer]-mu/sd
 
     #take and save SS hits
     ad.obsm['SS_{}_Z-{}'.format(ctrl_value,z_cutoff)]=pd.DataFrame(data=ad.layers['Z_{}'.format(ctrl_value)]>z_cutoff,
@@ -68,8 +68,7 @@ def generate_alanine_lib_fastq(pep_table, out_file):
         
         #do alanine scan of the peptide
         for i in range(49): 
-            hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=
-            aa2na(pep_table.loc[p,'seq'][: i] + A + pep_table.loc[p,'seq'][: i]) #stops at i-th AA and replaces with alanine
+            hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=aa2na(pep_table.loc[p,'seq'][: i] + A + pep_table.loc[p,'seq'][: i]) #stops at i-th AA and replaces with alanine
     
     #write dictionary to fasta
     with open(out_file,'w') as f: 
