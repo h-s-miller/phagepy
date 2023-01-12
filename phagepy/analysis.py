@@ -59,15 +59,21 @@ def generate_peptide_table(adata, map_file):
     return pep_table
 
 
-def generate_alanine_lib_fastq(pep_table, out_file):
+def generate_alanine_lib_fastq(pep_table, out_file, n_):
+    hibit_seqs={} # make a dictionary-- fasta header:fasta seq'
+    linker_5p='AGCCATCCGCAGTTCGAGAAA'
+    linker_3p='GACTACAAGGACGACGATGAT'
     
     for p in pep_table.index:
         #add original seq to the dictionary 
-        hibit_seqs['{}_frag{}_ALAscanNULL'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'])]=aa2na(pep_table.loc[p,'seq'])
+        hibit_seqs['{}_frag{}_ALAscanNULL'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'])]=linker_5p+aa2na(pep_table.loc[p,'seq'])+linker_3p
         
         #do alanine scan of the peptide
-        for i in range(49): 
-            hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=aa2na(pep_table.loc[p,'seq'][: i] + A + pep_table.loc[p,'seq'][: i]) #stops at i-th AA and replaces with alanine
+        for i in range(49):
+            if i==0: 
+                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=linker_5p+aa2na('A'*(n_) +pep_table.loc[p,'seq'][n_:])+linker_3p
+            else:
+                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=linker_5p+aa2na(pep_table.loc[p,'seq'][: i] + 'A'*(n_) + pep_table.loc[p,'seq'][i+n_:])+linker_3 #stops at i-th AA and replaces with alanine
     
     #write dictionary to fasta
     with open(out_file,'w') as f: 
