@@ -101,7 +101,7 @@ def aa2na(seq):
     return "".join(na_seq)
     hibit_seqs={} # make a dictionary-- fasta header:fasta seq
 
-def generate_SS_hits(ad, layer, ctrl_key, ctrl_value, z_cutoff=2):
+def generate_SS_hits(ad, layer, ctrl_key, ctrl_value, z_cutoff=3):
     # take mean and standard deviation of the control group
     mu=np.mean(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
     sd=np.std(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
