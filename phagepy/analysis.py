@@ -25,6 +25,77 @@ AA2NA = {
 "V": list("GTT,GTC,GTA,GTG".split(",")),
 "*": list("TAA,TGA,TAG".split(","))}
 
+NA2AA = {'GCT': 'A',
+ 'GCC': 'A',
+ 'GCA': 'A',
+ 'GCG': 'A',
+ 'CGT': 'R',
+ 'CGC': 'R',
+ 'CGA': 'R',
+ 'CGG': 'R',
+ 'AGA': 'R',
+ 'AGG': 'R',
+ 'AAT': 'N',
+ 'AAC': 'N',
+ 'GAT': 'D',
+ 'GAC': 'D',
+ 'TGT': 'C',
+ 'TGC': 'C',
+ 'CAA': 'Q',
+ 'CAG': 'Q',
+ 'GAA': 'E',
+ 'GAG': 'E',
+ 'GGT': 'G',
+ 'GGC': 'G',
+ 'GGA': 'G',
+ 'GGG': 'G',
+ 'CAT': 'H',
+ 'CAC': 'H',
+ 'ATT': 'I',
+ 'ATC': 'I',
+ 'ATA': 'I',
+ 'TTA': 'L',
+ 'TTG': 'L',
+ 'CTT': 'L',
+ 'CTC': 'L',
+ 'CTA': 'L',
+ 'CTG': 'L',
+ 'AAA': 'K',
+ 'AAG': 'K',
+ 'ATG': 'M',
+ 'TTT': 'F',
+ 'TTC': 'F',
+ 'CCT': 'P',
+ 'CCC': 'P',
+ 'CCA': 'P',
+ 'CCG': 'P',
+ 'TCT': 'S',
+ 'TCC': 'S',
+ 'TCA': 'S',
+ 'TCG': 'S',
+ 'AGT': 'S',
+ 'AGC': 'S',
+ 'ACT': 'T',
+ 'ACC': 'T',
+ 'ACA': 'T',
+ 'ACG': 'T',
+ 'TGG': 'W',
+ 'TAT': 'Y',
+ 'TAC': 'Y',
+ 'GTT': 'V',
+ 'GTC': 'V',
+ 'GTA': 'V',
+ 'GTG': 'V',
+ 'TAA': '*',
+ 'TGA': '*',
+ 'TAG': '*'}
+
+def translate(seq):
+    aa=[]
+    for i in range(int(len(seq)/3)):
+        aa.append(NA2AA[seq[i*3:(i*3)+3]])
+    return ''.join(aa)
+
 def aa2na(seq):
     na_seq = [random.choice(AA2NA.get(c, ["---"])) for c in seq]
     return "".join(na_seq)
@@ -59,24 +130,70 @@ def generate_peptide_table(adata, map_file):
     return pep_table
 
 
-def generate_alanine_lib_fastq(pep_table, out_file, n_):
+def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49):
     hibit_seqs={} # make a dictionary-- fasta header:fasta seq'
     linker_5p='AGCCATCCGCAGTTCGAGAAA'
     linker_3p='GACTACAAGGACGACGATGAT'
     
     for p in pep_table.index:
         #add original seq to the dictionary 
-        hibit_seqs['{}_frag{}_ALAscanNULL'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'])]=linker_5p+aa2na(pep_table.loc[p,'seq'])+linker_3p
+        hibit_seqs['{}_frag{}_ALAscanNULL'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'])]=aa2na(pep_table.loc[p,'seq'])
         
         #do alanine scan of the peptide
-        for i in range(49):
+        for i in range(len_peps-(n_-1)): #only go up to the last window of length n_
             if i==0: 
-                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=linker_5p+aa2na('A'*(n_) +pep_table.loc[p,'seq'][n_:])+linker_3p
+                seq=aa2na('A'*(n_) +pep_table.loc[p,'seq'][n_:])
+                #check for restriction sites and replace with equivalent codon 
+                if replace_restriction_sites(seq):
+                    seq=replace_restriction_sites(seq)
+                    
+                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=seq
+                
             else:
-                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=linker_5p+aa2na(pep_table.loc[p,'seq'][: i] + 'A'*(n_) + pep_table.loc[p,'seq'][i+n_:])+linker_3 #stops at i-th AA and replaces with alanine
-    
+                seq=aa2na(pep_table.loc[p,'seq'][: i] + 'A'*(n_) + pep_table.loc[p,'seq'][i+n_:]) #stops at i-th AA and replaces with alanine
+                #check for restriction sites and replace with equivalent codon 
+                if replace_restriction_sites(seq):
+                    seq=replace_restriction_sites(seq)
+                
+                hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=seq
+                
     #write dictionary to fasta
     with open(out_file,'w') as f: 
         for header in hibit_seqs.keys():
             f.write('>'+header+'\n')
-            f.write(hibit_seqs[header]+'\n')
+            f.write(linker_5p+hibit_seqs[header]+linker_3p+'\n') #add linkers to final sequence
+            
+def replace_restriction_sites(seq) -> int:
+    """
+    restriction sites:
+    ecoRI='GAATTC'
+    hindIII='AAGCTT'
+    bamHI='GGATCC'
+    XhoI='CTCGAG'
+    """
+    restriction_sites=['GAATTC','AAGCTT','GGATCC','CTCGAG']
+    
+    new_seq=None
+    for r in restriction_sites: 
+        if seq.find(r) != -1:
+            ##find codon at restriction site
+            x=seq.find(r)
+            n=x%3 #find start of codon
+            codon=seq[x-n:x-n+3]
+            
+            ##replace with synonomous mutation
+            tmp=AA2NA[NA2AA[codon]][:] #get copy of codon list
+            tmp.remove(codon) #remove the one causing restriction site
+            new_codon=tmp[0] #replace 
+            new_seq=seq[:x-n]+new_codon+seq[x-n+3:]
+            break
+        
+        else:
+            continue 
+    
+    if new_seq:
+        return new_seq
+    else:
+        return None
+            
+
