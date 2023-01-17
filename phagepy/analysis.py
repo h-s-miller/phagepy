@@ -91,17 +91,69 @@ NA2AA = {'GCT': 'A',
  'TAG': '*'}
 
 def translate(seq):
+     """
+    translates DNA to protein 
+    
+    Parameters
+    ----------
+    seq: str
+        DNA nucleotide sequence
+    
+    Returns
+    -------
+    seq: str
+        amino acid sequence
+    """
     aa=[]
+    if seq % 3 != 0: 
+        raise TypeError('Incomplete nucleotide sequence')
     for i in range(int(len(seq)/3)):
         aa.append(NA2AA[seq[i*3:(i*3)+3]])
     return ''.join(aa)
 
 def aa2na(seq):
+    """
+    translates amino acid to e.coli preferred codons, randomly choosing codon for each AA
+    
+    Parameters
+    ----------
+    seq: str
+        amino acid sequence
+    
+    Returns
+    -------
+    seq: str
+        nucleotide sequence
+    """
     na_seq = [random.choice(AA2NA.get(c, ["---"])) for c in seq]
     return "".join(na_seq)
-    hibit_seqs={} # make a dictionary-- fasta header:fasta seq
 
-def generate_SS_hits(ad, layer, ctrl_key, ctrl_value, z_cutoff=3):
+def generate_SS_hits(ad, layer='FC_over_AG', ctrl_key, ctrl_value, z_cutoff=3):
+    """
+    Generates Sequence-Specific Hits (SS-hits) at a given cutoff. Ie, given control group, is sample's peptide counts > 3 std.deviations from mean of control group. 
+    
+    Parameters
+    ----------
+    ad: anndata
+    layer: str, default: 'FC_over_AG'
+        layer parameter (ad.layers[`layer_`]) of anndata object to preform z-score calculation on
+    ctrl_key: str
+        column of ad.obs that specifies groups, one of which would be control. 
+        (eg, ctrl_key=`group`; ad.obs[`group`])
+    ctrl_value: str
+        category within ad.obs[`ctrl_key`] that is the control group. 
+        (eg, ctrl_key=`group`, ctrl_value=`healthy`; ad.obs[`group`]==`healthy`)
+    z_cutoff: int, default=3
+        if z>z_cutoff, then this a SS-hit for the sample 
+    
+    Returns
+    -------
+    None 
+    
+    Notes
+    -----
+    Saves z score under ad.layers[`Z_<ctrl_value>`] and saves SS hits under ad.obsm[`SS_<ctrl_value>_Z-<z-cutoff>`]
+    """
     # take mean and standard deviation of the control group
     mu=np.mean(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
     sd=np.std(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
@@ -115,25 +167,66 @@ def generate_SS_hits(ad, layer, ctrl_key, ctrl_value, z_cutoff=3):
                                              columns=ad.var.index)
     return None
 
-def generate_peptide_table(adata, map_file):
+def generate_peptide_table(ad, map_file):
+    """
+    geneerates peptide mapping table from peptide mapping reference 
+    
+    Parameters
+    ----------
+    ad: anndata
+        amino acid sequence
+    map_file: str
+        path to mapping file
+    
+    Returns
+    -------
+    pep_table: pandas.DataFrame
+        Data frame indexed by peptides present in the adata object with columns for `gene`, `fragment`, 
+        and `seq` (the AA sequence of the fragment)
+    """
     #load peptide info 
     pep2gene=pd.read_csv(map_file, index_col=0, header=0)
     p2g=pep2gene.gene.to_dict()
     p2seq=pep2gene.sequence.to_dict()
     del pep2gene
     
-    pep_table=pd.DataFrame(index=adata.var_names)
+    pep_table=pd.DataFrame(index=ad.var_names)
     pep_table['gene']=pep_table.index.map(p2g)
     pep_table['fragment']=[x.split('fragment_')[1] for x in pep_table.index]
     pep_table['seq']=pep_table.index.map(p2seq)
+    del p2g, p2seq
     
     return pep_table
 
 
-def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49):
+def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49, 
+                               linker_5p='AGCCATCCGCAGTTCGAGAAA', linker_3p='GACTACAAGGACGACGATGAT'):
+     """
+    generates alanine scanning library of peptides of interest. Can vary the length of alanine motif and linkers. 
+    Output can be directly submitted to TWIST to order oligos. Sequences are automatically checked for restriction sites. 
+    
+    Parameters
+    ----------
+    pep_table: pandas.DataFrame
+        Data frame indexed by peptides that you want to run alanine scan on. Has columns for `gene`, `fragment`, 
+        and `seq` (the AA sequence of the fragment)
+    out_file: str
+        path to fastq output 
+    n_: int 
+        number of alanines
+    len_peps: int, default=49
+        length of peptides preforming alanine scan on 
+    linker_5p: str, default='AGCCATCCGCAGTTCGAGAAA'
+        nucleotide sequence of 5' linker for oligo ordering. default is the linker used in human peptidome. 
+    linker_3p: str, default='GACTACAAGGACGACGATGAT'
+        nucleotide sequence of 3' linker for oligo ordering. default is the linker used in human peptidome.
+    
+    Notes
+    -----
+    Fastq of alanine scan peptides written to out file.
+    
+    """
     hibit_seqs={} # make a dictionary-- fasta header:fasta seq'
-    linker_5p='AGCCATCCGCAGTTCGAGAAA'
-    linker_3p='GACTACAAGGACGACGATGAT'
     
     for p in pep_table.index:
         #add original seq to the dictionary 
@@ -163,8 +256,22 @@ def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49):
             f.write('>'+header+'\n')
             f.write(linker_5p+hibit_seqs[header]+linker_3p+'\n') #add linkers to final sequence
             
-def replace_restriction_sites(seq) -> int:
+def replace_restriction_sites(seq):
     """
+    checks sequence for restriction enzyme cut sites and replaces first in-frame codon with synonomous mutation.
+    
+    Parameters
+    ----------
+    seq: str
+        nucleotide sequence 
+    
+    Returns
+    -------
+    new_seq: str or None
+        nucleotide sequence with synonomous mutation at restriction site, or None if no restriction sites
+
+    Notes
+    -----
     restriction sites:
     ecoRI='GAATTC'
     hindIII='AAGCTT'
