@@ -167,6 +167,39 @@ def generate_SS_hits(ad, layer='FC_over_AG', ctrl_key, ctrl_value, z_cutoff=3):
                                              columns=ad.var.index)
     return None
 
+
+def per_sample_zscore_SShits(ad,layer='FC_over_AG', z_cutoff=3):
+    """
+    Takes per sample zscore, ie, what peptides are enriched in each sample in comparison to their other peptides. 
+    
+    Parameters
+    ----------
+    ad: anndata
+    layer: str, default: 'FC_over_AG'
+        layer parameter (ad.layers[`layer_`]) of anndata object to preform z-score calculation on. if layer=='raw' do raw counts. 
+    
+    Returns
+    -------
+    None 
+    
+    Notes
+    -----
+    Saves z score under ad.layers[`per_sample_Z`] and saves SS hits under ad.obsm[`SS_<z_cutoff>_per_sample_Z`]
+    """
+    
+    if layer=='raw':
+        counts=ad.X
+    else:
+        counts=ad.layers[layer]
+    
+    mu=np.mean(counts,axis=1)
+    sd=np.std(counts,axis=1)
+    
+    ad.layers['per_sample_Z']=(counts.T-mu/sd).T
+    ad.layers['SS_{}_per_sample_Z'.format(z_cutoff)]=ad.layers['per_sample_Z']>z_cutoff
+    
+    return None
+
 def generate_peptide_table(ad, map_file):
     """
     geneerates peptide mapping table from peptide mapping reference 
