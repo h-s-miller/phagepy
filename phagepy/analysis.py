@@ -91,7 +91,7 @@ NA2AA = {'GCT': 'A',
  'TAG': '*'}
 
 def translate(seq):
-     """
+    """
     translates DNA to protein 
     
     Parameters
@@ -128,7 +128,7 @@ def aa2na(seq):
     na_seq = [random.choice(AA2NA.get(c, ["---"])) for c in seq]
     return "".join(na_seq)
 
-def generate_SS_hits(ad, layer='FC_over_AG', ctrl_key, ctrl_value, z_cutoff=3):
+def generate_SS_hits(ad, ctrl_key, ctrl_value, layer='FC_over_AG', z_cutoff=3):
     """
     Generates Sequence-Specific Hits (SS-hits) at a given cutoff. Ie, given control group, is sample's peptide counts > 3 std.deviations from mean of control group. 
     
@@ -234,7 +234,7 @@ def generate_peptide_table(ad, map_file):
 
 def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49, 
                                linker_5p='AGCCATCCGCAGTTCGAGAAA', linker_3p='GACTACAAGGACGACGATGAT'):
-     """
+    """
     generates alanine scanning library of peptides of interest. Can vary the length of alanine motif and linkers. 
     Output can be directly submitted to TWIST to order oligos. Sequences are automatically checked for restriction sites. 
     
@@ -259,12 +259,12 @@ def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49,
     Fastq of alanine scan peptides written to out file.
     
     """
-    hibit_seqs={} # make a dictionary-- fasta header:fasta seq'
+    hibit_seqs={} # make a dictionary-- fasta header:fasta seq
     
     for p in pep_table.index:
         #add original seq to the dictionary 
         hibit_seqs['{}_frag{}_ALAscanNULL'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'])]=aa2na(pep_table.loc[p,'seq'])
-        
+
         #do alanine scan of the peptide
         for i in range(len_peps-(n_-1)): #only go up to the last window of length n_
             if i==0: 
@@ -272,17 +272,17 @@ def generate_alanine_lib_fastq(pep_table, out_file, n_, len_peps=49,
                 #check for restriction sites and replace with equivalent codon 
                 if replace_restriction_sites(seq):
                     seq=replace_restriction_sites(seq)
-                    
+
                 hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=seq
-                
+
             else:
                 seq=aa2na(pep_table.loc[p,'seq'][: i] + 'A'*(n_) + pep_table.loc[p,'seq'][i+n_:]) #stops at i-th AA and replaces with alanine
                 #check for restriction sites and replace with equivalent codon 
                 if replace_restriction_sites(seq):
                     seq=replace_restriction_sites(seq)
-                
+
                 hibit_seqs['{}_frag{}_ALAscan{}'.format(pep_table.loc[p,'gene'],pep_table.loc[p,'fragment'],i)]=seq
-                
+
     #write dictionary to fasta
     with open(out_file,'w') as f: 
         for header in hibit_seqs.keys():
