@@ -302,7 +302,6 @@ def replace_restriction_sites(seq):
     -------
     new_seq: str or None
         nucleotide sequence with synonomous mutation at restriction site, or None if no restriction sites
-
     Notes
     -----
     restriction sites:
@@ -323,9 +322,20 @@ def replace_restriction_sites(seq):
             
             ##replace with synonomous mutation
             tmp=AA2NA[NA2AA[codon]][:] #get copy of codon list
-            tmp.remove(codon) #remove the one causing restriction site
-            new_codon=tmp[0] #replace 
-            new_seq=seq[:x-n]+new_codon+seq[x-n+3:]
+            if len(tmp)>1:
+                tmp.remove(codon) #remove the one causing restriction site
+                new_codon=tmp[0] #replace 
+                new_seq=seq[:x-n]+new_codon+seq[x-n+3:]
+                
+            #tryptophan has only one codon so you cant do this
+            else: 
+                codon=seq[x-n+3:x-n+6]
+                print(codon)
+                tmp=AA2NA[NA2AA[codon]][:]
+                tmp.remove(codon) #remove the one causing restriction site
+                new_codon=tmp[0] #replace 
+                new_seq=seq[:x-n]+new_codon+seq[x-n+3:]
+                
             break
         
         else:
