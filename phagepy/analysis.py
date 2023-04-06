@@ -159,7 +159,7 @@ def generate_SS_hits(ad, ctrl_key, ctrl_value, layer='FC_over_AG', z_cutoff=3):
     sd=np.std(ad[ad.obs[ctrl_key]==ctrl_value].layers[layer],axis=0)
 
     #take and save z-score
-    ad.layers['Z_{}'.format(ctrl_value)]=ad.layers[layer]-mu/sd
+    ad.layers['Z_{}'.format(ctrl_value)]=(ad.layers[layer]-mu)/sd
 
     #take and save SS hits
     ad.obsm['SS_{}_Z-{}'.format(ctrl_value,z_cutoff)]=pd.DataFrame(data=ad.layers['Z_{}'.format(ctrl_value)]>z_cutoff,
@@ -195,7 +195,7 @@ def per_sample_zscore_SShits(ad,layer='FC_over_AG', z_cutoff=3):
     mu=np.mean(counts,axis=1)
     sd=np.std(counts,axis=1)
     
-    ad.layers['per_sample_Z']=(counts.T-mu/sd).T
+    ad.layers['per_sample_Z']=((counts.T-mu)/sd).T
     ad.layers['SS_{}_per_sample_Z'.format(z_cutoff)]=ad.layers['per_sample_Z']>z_cutoff
     
     return None
