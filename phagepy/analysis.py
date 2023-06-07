@@ -105,7 +105,7 @@ def translate(seq):
         amino acid sequence
     """
     aa=[]
-    if seq % 3 != 0: 
+    if len(seq) % 3 != 0: 
         raise TypeError('Incomplete nucleotide sequence')
     for i in range(int(len(seq)/3)):
         aa.append(NA2AA[seq[i*3:(i*3)+3]])
