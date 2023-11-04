@@ -347,3 +347,165 @@ def replace_restriction_sites(seq):
         return None
             
 
+def find_sets(SS,repeat):
+    """
+     Internal function within minimal sets. Runs n repeats and finds the minimal set that covers all patients.
+    
+    Parameters
+    ----------
+    SS: pd.DataFrame
+        sequence-specific hits matrix, boolean, mxn shape: patients x peptides (or genes)
+    repeat: int
+        number of repeats
+    
+    Returns
+    -------
+    len_ws: list 
+        the number of peptides that cover all patients (shape: n repeats)
+    ilocs_lst: list
+        the integer locations of the peptides for each set returned (shape: n repeats)
+    
+    """
+    m=SS.shape[0] #num patients
+    n=SS.shape[1] #num peptides
+
+    max_rank=np.count_nonzero(SS.sum(axis=1))
+
+    Ws=[] # sets of vectors, i.e., S_ks
+    len_ws=[] # saving the length of the set to minimize
+    ilocs_lst=[] #saving the locations of the column vectors so I can match the peptides
+    rank_lst = []
+    for j in np.arange(repeat): #preform this n times, default= 500
+        ilocs=[]
+        W=[]
+        arr_=np.arange(1,n) # shuffle the column vectors
+        np.random.shuffle(arr_)
+        rank_prev=0
+        
+        for i in arr_:
+            X=W.copy()
+            X.append(SS.iloc[:,i].values) 
+            rank_=np.count_nonzero(np.array(X).T.sum(axis=1)) #count nonzero of the sum
+            rank_lst.append(rank_)
+            if rank_==rank_prev: #if the new vector does not increase the patient coverage, skip it
+                continue
+            else:
+                ilocs.append(i)
+                W.append(SS.iloc[:,i].values)
+                rank_prev=rank_
+                if rank_==max_rank: #if we reach all pateints, exit loop 
+                    break
+                else:
+                    continue
+        Ws.append(W)
+        len_ws.append(len(W))
+        ilocs_lst.append(ilocs)
+
+    return len_ws, ilocs_lst 
+
+def find_minimal(SS,len_ws, ilocs_lst):
+    """
+     Internal function within minimal sets. Finds and returns the minimal set from find_sets()
+    
+    Parameters
+    ----------
+    SS: pd.DataFrame
+        sequence-specific hits matrix, boolean, mxn shape: patients x peptides (or genes)
+    len_ws: list 
+        the number of peptides that cover all patients (shape: n repeats)
+    ilocs_lst: list
+        the integer locations of the peptides for each set returned (shape: n repeats)
+
+    Returns
+    -------
+    peptides: list 
+        list of peptides that comprise minimal sets, can be more than one value in list if multiple sets have the same rank
+    
+    """
+    min_rank=min(len_ws)
+    matches=[x==min_rank for x in len_ws]
+    print("{} set(s) cover {} patients with {} features".format(sum(matches), Ws[0][0].shape[0], min_rank))
+    
+    peptides=[]
+    i=0
+    for x in matches:
+        if x==True:
+            peptides.append(SS.columns[ilocs_lst[i]])
+        i+=1
+    
+    return(peptides)
+        
+
+def minimal_set(SS, repeat=500):
+    """
+     Internal function within minimal sets. Finds and returns the minimal set from find_sets()
+    
+    Parameters
+    ----------
+    SS: pd.DataFrame
+        sequence-specific hits matrix, boolean, mxn shape: patients x peptides (or genes)
+    repeat: int, default=500
+        Number of iterations to randomize columns to form minimal sets
+    Returns
+    -------
+    peptides: list 
+        list of peptides that comprise minimal sets, can be more than one value in list if multiple sets have the same rank
+    
+    """
+    len_ws, ilocs_lst = find_sets(SS,repeat)
+    peptides=find_minimal(SS, len_ws, ilocs_lst)
+    return peptides
+
+def plot_minimal_set(SS, peptides, percent=False, save=False, savedir=None): 
+    """
+     Internal function within minimal sets. Finds and returns the minimal set from find_sets()
+    
+    Parameters
+    ----------
+    SS: pd.DataFrame
+        sequence-specific hits matrix, boolean, mxn shape: patients x peptides (or genes)
+    peptides: list
+        List of peptides that comprise ONE minimal set
+    percent: bool, default=False
+        If true, represent y axis as % of all patients. If false, y axis is number of patients
+    save: bool, default=False
+        If true, save figure
+    savedir: str, default=None
+        If save true, need to supply savedir as path of where to save figure
+    
+    Returns
+    -------
+    None
+    
+    """
+    X=[]
+    ranks_over_set=[]
+    m=SS.shape[0]
+    
+    for p in peptides: 
+        X.append(SS.loc[:,p].values) 
+        ranks_over_set.append(np.count_nonzero(np.array(X).T.sum(axis=1)))
+    
+    
+    fig,ax=plt.subplots()
+    if percent:
+        yy=(ranks_over_set/(np.ones(len(peptides))*m))*(np.ones(len(peptides))*100)
+        ax.plot(np.arange(len(peptides))+1, yy, '-o')
+        ax.set_yticks(np.arange(0,110,10))
+        ax.set_ylabel('Percent of Patients Covered')
+    else: 
+        ax.plot(np.arange(len(peptides))+1, ranks_over_set, '-o')
+        ax.set_yticks(np.arange(0,m+5,5))
+        ax.set_ylabel('Number of Patients Covered')
+        
+        
+    ax.set_xlabel('Number of Peptides')
+    ax.set_title('Minimal Set')
+    plt.grid(True, axis='y')
+    if save:
+        if savedir is None: 
+            raise ValueError('Need to supply save file name as savedir argument if saving figure')
+        else:
+            plt.savefig(savedir)
+
+    plt.show()
