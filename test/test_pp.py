@@ -33,7 +33,7 @@ def test_read_sparse():
     meta='./test/test_meta.csv' # contains 3/5 of the samples in the count matrix 
 
     ## read data ## 
-    adata=pp.create_sparse_anndata(counts, meta)
+    adata=pp.read_write.create_sparse_anndata(counts, meta)
 
     ## check if shape is correct ##
     assert(adata.shape[0]==8 and adata.shape[1]==6), "Adata not read in correctly, shape is wrong"
