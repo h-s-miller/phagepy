@@ -58,10 +58,10 @@ def load_csv_as_sparse(csv_path, transpose, sparse_fmt):
     f=open(csv_path, 'r')
     if transpose: 
         obs_values=f.readline().strip('\n').split(',')[1:] ##just have to get the first line for this, skip first bc its "peptide"
-        var_values=pd.read_csv(csv_path, usecols=['peptide']).tolist() #loading only one column isnt super fast, but limits memory usage
+        var_values=pd.read_csv(csv_path, usecols=['peptide']).peptide.tolist() #loading only one column isnt super fast, but limits memory usage
     else: 
         var_values=f.readline().strip('\n').split(',')[1:] ##just have to get the first line for this, skip first bc its "peptide"
-        obs_values=pd.read_csv(csv_path, usecols=['peptide']).tolist() #loading only one column isnt super fast, but limits memory usage
+        obs_values=pd.read_csv(csv_path, usecols=['peptide']).peptide.tolist() #loading only one column isnt super fast, but limits memory usage
 
     f.close()
 
