@@ -198,8 +198,8 @@ def plot_violin(ad, peptides, g_, obs_key, layer='FC_over_AG',obs_colors=None, s
         c2='#FF4D59'
 
     fig, ax =plt.subplots(figsize=(8,6))
-    sns.violinplot(data=df, x='cohort', y='rpk',palette=['#33FFB3','#FF4D59'], width=0.8, ax=ax, scale='count')
-    sns.stripplot(data=df, x='cohort', y='rpk', size=10, ax=ax, palette=['#0057D9'], jitter=True)
+    sns.violinplot(data=df, x=obs_key, y='rpk',palette=['#33FFB3','#FF4D59'], width=0.8, ax=ax, scale='count')
+    sns.stripplot(data=df, x=obs_key, y='rpk', size=10, ax=ax, palette=['#0057D9'], jitter=True)
     
     
     ax.set_xlabel(obs_key, fontsize=15)
