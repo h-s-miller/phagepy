@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import scanpy as sc
 import anndata as ad
-import scipy.sparse as sparse
+from scipy.sparse.base import spmatrix
 
 def create_anndata(counts_file, metadata_file, transpose=True):
     #read in counts
@@ -71,9 +71,9 @@ def load_csv_as_sparse(csv_path, transpose, sparse_fmt):
 
     #convert to sparse
     if sparse_fmt=='csr':
-        X=sparse.csr_matrix(X)
+        X=spmatrix.csr_matrix(X)
     elif sparse_fmt=='csc':
-        X=sparse.csc_matrix(X)
+        X=spmatrix.csc_matrix(X)
     else: 
         raise ValueError('Input for sparse_fmt is invalid, please use either "csr" for compressed row or "csc" for compressed column')
 

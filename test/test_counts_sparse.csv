@@ -1,4 +1,4 @@
-,seq1,seq2,seq3,seq4,seq5,seq6,seq7,seq8
+peptide,seq1,seq2,seq3,seq4,seq5,seq6,seq7,seq8
 peptide1,0,0,0,0,0,2,0,0
 peptide2,0,0,1,0,0,0,0,2
 peptide3,0,0,0,0,0,0,0.5,0.5

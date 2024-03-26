@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import matplotlib as mpl
 import seaborn as sns
+import scipy.stats as ss
 
 def PCA_samples_2D(adata, layer_='FC_over_AG', raw=False):
     """
@@ -111,7 +112,50 @@ def plot_PCA_samples_2D(adata, layer_='FC_over_AG', raw=False, obs_key=None, pri
     
     plt.show()
     
+def make_corr_matrix(ad): 
+    """
+    makes a correlation matrix between all samples on raw counts
+
+    Parameters
+    ----------
+    ad: anndata.AnnData
+        input anndata object
+
     
+    Returns
+    -------
+    corr_matrix: pd.DataFrame
+        obs x obs matrix of pearson correlation values 
+    """
+    corr_matrix=pd.DataFrame(data=None, index=ad.obs.index, columns=ad.obs.index)
+    for x in corr_matrix.index:
+        for y in corr_matrix.index:
+            corr_matrix.loc[x,y]=ss.pearsonr(ad[x,:].X.values, ad[y,:].X.values)[0]
+    return corr_matrix
+
+def plot_correlation(ad, save=False, save_title=None, save_dir=None,):
+    corr_matrix=make_corr_matrix(ad)
+
+    fig,ax=plt.subplots(figsize=(10,10))
+
+    index_values=[x.split('_')[1] for x in corr_matrix.index]
+
+
+    mat=ax.matshow(corr_matrix.astype(float), cmap='cividis')
+    ax.set_title('Pearson correlation of All Samples',
+                fontsize=18)
+
+    ax.set_yticks(range(len(index_values)))
+    ax.set_yticklabels(index_values)
+    ax.set_xticks(range(len(index_values)))
+    ax.set_xticklabels(index_values, rotation=90)
+
+
+    fig.colorbar(mat, ax=ax, shrink=0.82)
+    if save: 
+        plt.savefig(save_dir+save_title)
+    plt.show()
+        
 def plot_violin(ad, peptides, g_, obs_key, layer='FC_over_AG',obs_colors=None, save=False,save_title=None, save_dir=None):
     """
     Runs dimensionality reduction with PCA and visualizes samples in 2D PCA space.
@@ -165,4 +209,6 @@ def plot_violin(ad, peptides, g_, obs_key, layer='FC_over_AG',obs_colors=None, s
 
     if save:
         plt.savefig(save_dir+save_title)
+
+    plt.show()
 
