@@ -130,7 +130,7 @@ def make_corr_matrix(ad):
     corr_matrix=pd.DataFrame(data=None, index=ad.obs.index, columns=ad.obs.index)
     for x in corr_matrix.index:
         for y in corr_matrix.index:
-            corr_matrix.loc[x,y]=ss.pearsonr(ad[x,:].X.values, ad[y,:].X.values)[0]
+            corr_matrix.loc[x,y]=ss.pearsonr(ad[x,:].X, ad[y,:].X)[0]
     return corr_matrix
 
 def plot_correlation(ad, save=False, save_title=None, save_dir=None,):
