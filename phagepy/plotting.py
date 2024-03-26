@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.decomposition import PCA
 import matplotlib as mpl
+import seaborn as sns
 
 def PCA_samples_2D(adata, layer_='FC_over_AG', raw=False):
     """
@@ -111,3 +112,57 @@ def plot_PCA_samples_2D(adata, layer_='FC_over_AG', raw=False, obs_key=None, pri
     plt.show()
     
     
+def plot_violin(ad, peptides, g_, obs_key, layer='FC_over_AG',obs_colors=None, save=False,save_title=None, save_dir=None):
+    """
+    Runs dimensionality reduction with PCA and visualizes samples in 2D PCA space.
+    
+    Parameters
+    ----------
+    ad: anndata.AnnData
+    peptides: pd.DataFrame
+        petide info table 
+    obs_key: str, optional
+        if you want to color samples by a category, obs_key is the category variable in the adata object
+        (eg, obs_key='disease' w/ adata.obs['disease']=['healthy','disease'])
+    layer: str, default='FC_over_AG'
+        which adata.layers data you want to use for the plot
+    obs_colors: list, optional
+        if you want to color samples by a category, this provides the colors. needs to be a list or 
+        dict of length equal to the num of category values in the obs_key comman (eg, obs_key='disease',
+        obs_colors=['blue','red'])
+     save: bool, default=False
+         directs matplotlib to save plot
+     save_title: str, optional
+         title for plot
+    
+
+         
+    Returns
+    -------
+    violin plot, which is optionally saved
+    
+    """
+
+    title_=peptides.loc[g_,'gene']+'_fragment-'+str(peptides.loc[g_,'fragment'])
+    
+    df=pd.DataFrame(data=ad[:,ad.var.index==g_].layers[layer], 
+              index=ad.obs.index, columns=['rpk'])
+    df[obs_key]=ad.obs[obs_key]
+
+    if not obs_colors: 
+        c1='#33FFB3'
+        c2='#FF4D59'
+
+    fig, ax =plt.subplots(figsize=(8,6))
+    sns.violinplot(data=df, x='cohort', y='rpk',palette=['#33FFB3','#FF4D59'], width=0.8, ax=ax, scale='count')
+    sns.stripplot(data=df, x='cohort', y='rpk', size=10, ax=ax, palette=['#0057D9'], jitter=True)
+    
+    
+    ax.set_xlabel(obs_key, fontsize=15)
+    ax.set_ylabel(layer, fontsize=15)
+    ax.set_title(title_, fontsize=15)
+    
+
+    if save:
+        plt.savefig(save_dir+save_title)
+
