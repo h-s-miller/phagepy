@@ -125,7 +125,7 @@ def boot_compare_scores(n_boots_, library_file_, scores_, n_peptides_=None):
     lines=open(library_file_,'r').readlines()
     for i in range(n_boots_):
         #get random sample index
-        idx=random.sample(range(len(lines/2)), n_peptides_)
+        idx=random.sample(range(len(lines)/2), n_peptides_)
         idx=2*np.array(idx)
         pep_boot=[lines[x] for x in idx]
 
