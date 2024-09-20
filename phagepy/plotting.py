@@ -350,22 +350,3 @@ def plot_jitter(ad, peptides, g_, obs_key, counts=False, layer='FC_over_AG',obs_
             plt.savefig(save_title)
 
     plt.show()
-
-def main():
-    import scanpy as sc
-    obs_=['s1','s2','s3']
-    var_=['p1','p2','p3','p4']
-    XX=np.array([[1,3,7,5],[0.1,0.025,4,2],[80,75,0,0]])
-    adata=sc.AnnData(X=XX)
-    adata.layers['logX']=np.log1p(adata.X)
-    print(adata.layers['logX'])
-    adata.obs.index=obs_
-    adata.obs['sample_type']=['ugly','ugly','good']
-    adata.var.index=var_
-    print(adata.obs)
-
-    peptide_table=pd.DataFrame(data={'gene':['Gene_a','Gene_b','Gene_b','Gene_c'], 
-                                     'fragment':['1','2','1','1']}, index=['p1','p2','p3','p4'])
-    plot_violin(adata,peptide_table, 'p2', 'sample_type', counts=True)
-                
-main()

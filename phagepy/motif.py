@@ -94,14 +94,24 @@ def sliding_sw(sw_, seq_, motif_, window_width_=None, boost_exact_match_=None):
     
     return(np.sum(scores))
 
-def boot_compare_scores(sw_, motif_, n_boots_, library_file_, scores_, n_peptides_=None, boost_exact_match_=None):
+def return_sequences(path_to_fasta):
+    sequences = []
+    with open(path_to_fasta, 'r') as fin:
+        sequence = ''
+        for line in fin:
+            if line.startswith('>'):
+                sequences.append(sequence)
+                sequence = ''
+            else:
+                sequence += line.strip()
+    return np.array(sequences[1:])
+
+def boot_compare_scores(sw_, motif_, n_boots_, library_file_, scores_, n_peptides_=None):
     """
     Bootstrap comparsion between a given set of epitope scores and epitope scores from bootstrap replicates of random peptides from a given library
 
     Parameters
     ----------
-    sw_: `skbio.alignment.StripedSmithWaterman` object 
-        defined smith-waterman alignment function from `waterman()` function output
     motif_: str
         motif of interest
     n_boots_: int
@@ -125,20 +135,19 @@ def boot_compare_scores(sw_, motif_, n_boots_, library_file_, scores_, n_peptide
 
     if not n_peptides_:
         n_peptides_=len(scores_)
-
-    lines=open(library_file_,'r').readlines()
+    seqs=return_sequences(library_file_)
     for i in range(n_boots_):
         #get random sample index
-        idx=random.sample(range(int(len(lines)/2)), n_peptides_)
-        idx=2*np.array(idx)
-        pep_boot=[lines[x] for x in idx]
+        idx=random.sample(range(len(seqs)), n_peptides_)
+        peps=seqs[np.array(idx)]
+    
 
-        alignment_score_boots=[sliding_sw(sw_, x, motif_, boost_exact_match_) for x in pep_boot]
+        alignment_score_boots=[pp.motif.sliding_sw(sw_, x, motif_, boost_exact_match_=500) for x in peps]
         boot_means.append(np.mean(alignment_score_boots))
         T_boot=ss.ttest_ind(scores_, alignment_score_boots)
         boot_t.append(T_boot[0])
         boot_p.append(T_boot[1])
 
-    results={'boot_scores':boot_means, 't-test':boot_t, 'p-val':boot_p}
+    results={'boot_scores':boot_means, 't-test':boot_t, 'p-val':boot_p,}
     return results
 
