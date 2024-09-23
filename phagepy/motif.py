@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import scipy.stats as ss
 import random
+from Bio import Align
+from Bio.Align import substitution_matrices
 
 dayhoff_matrix={'a':['C'],
                 'b':['A','G','P','S','T'], 
@@ -55,7 +57,7 @@ def waterman(motif_, substitution_, kwargs={}):
     
     return sw
 
-def sliding_sw(sw_, seq_, motif_, window_width_=None, boost_exact_match_=None):
+def sliding_sw(seq_, motif_, window_width_=None, boost_exact_match_=None):
     """
     scores a peptide for a known motif with sliding windows across the sequence. The score is defined as the sum of either (i) the smith-waterman alignment of the sliding window to the motif  
      or (ii) the `boost_exact_match` parameter, when it is set, if there is an exact match between the sliding window and the epitope. 
@@ -78,9 +80,23 @@ def sliding_sw(sw_, seq_, motif_, window_width_=None, boost_exact_match_=None):
     results: dict
         dictionary of results with 'boot_scores', 't-test' and 'p-val' keys
     """
+    # check for illegal AA
+    if 'X' in seq_:
+        print('sequences contains invalid amino acid code: X')
+        return np.nan()
+    
+    # define aligner
+    aligner=Align.PairwiseAligner()
+    matrix = substitution_matrices.load("DAYHOFF")
+    aligner.mismatch_score=0
+    aligner.match_score=-2
+    align.gap_score=-2.5
+    aligner.substitution_matrix = matrix
+
     if not window_width_:
         window_width_=len(motif_)+1
 
+    #sliding window
     scores=[]
     for i in range(len(seq_)-(window_width_-1)):
         xx=seq_[i:i+window_width_]
@@ -88,9 +104,9 @@ def sliding_sw(sw_, seq_, motif_, window_width_=None, boost_exact_match_=None):
             if ''.join(xx[:len(motif_)])==motif_ or ''.join(xx[1:])==motif_:
                 scores.append(boost_exact_match_)
             else:
-                scores.append(sw_(xx)['optimal_alignment_score'])
+                scores.append(aligner.score(xx,motif_))
         else: 
-            scores.append(sw_(xx)['optimal_alignment_score'])
+            scores.append(aligner.score(xx,motif_))
     
     return(np.sum(scores))
 
