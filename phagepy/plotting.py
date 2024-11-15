@@ -5,6 +5,7 @@ import matplotlib as mpl
 import seaborn as sns
 import scipy.stats as ss
 import numpy as np
+from itertools import combinations
 
 def PCA_samples_2D(adata, layer_='FC_over_AG', raw=False):
     """
@@ -137,18 +138,23 @@ def make_corr_matrix(ad, layer_, metric_, save_table):
 
     # fill dataframe of correlations
     corr_matrix=pd.DataFrame(data=None, index=ad.obs.index, columns=ad.obs.index)
-    for x in range(len(ad.obs.index)):
-        for y in range(len(ad.obs.index)):
-            x_loc=ad.obs.index[x]
-            y_loc=ad.obs.index[y]
-            if metric_=='pearson':
-                corr_matrix.loc[x_loc,y_loc]=ss.pearsonr(XX[x,:], XX[y,:])[0]
-            elif metric_=='spearman':
-                corr_matrix.loc[x_loc,y_loc]=ss.spearmanr(XX[x,:], XX[y,:])[0]  
-            elif metric_=='cosine':
-                corr_matrix.loc[x_loc,y_loc]=np.dot(XX[x,:],XX[y,:])/(np.linalg.norm(XX[x,:])*np.linalg.norm(XX[y,:]))
-            else:
-                raise ValueError('Invalid "metric_" value. Please enter either "pearson", "spearman" or "cosine" for metric arg.')
+    for combo in combinations(range(len(ad.obs.index)),2):
+        x=combo[0]
+        y=combo[1]
+        x_loc=ad.obs.index[x]
+        y_loc=ad.obs.index[y]
+
+        if metric_=='pearson':
+            corr_matrix.loc[x_loc,y_loc]=ss.pearsonr(XX[x,:], XX[y,:])[0]
+            corr_matrix.loc[y_loc,x_loc]=corr_matrix.loc[x_loc,y_loc]
+        elif metric_=='spearman':
+            corr_matrix.loc[x_loc,y_loc]=ss.spearmanr(XX[x,:], XX[y,:])[0]  
+            corr_matrix.loc[y_loc,x_loc]=corr_matrix.loc[x_loc,y_loc]
+        elif metric_=='cosine':
+            corr_matrix.loc[x_loc,y_loc]=np.dot(XX[x,:],XX[y,:])/(np.linalg.norm(XX[x,:])*np.linalg.norm(XX[y,:]))
+            corr_matrix.loc[y_loc,x_loc]=corr_matrix.loc[x_loc,y_loc]
+        else:
+            raise ValueError('Invalid "metric_" value. Please enter either "pearson", "spearman" or "cosine" for metric arg.')
     
     #optional save
     if save_table:
